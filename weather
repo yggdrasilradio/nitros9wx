@@ -1,0 +1,40 @@
+PROCEDURE WX
+
+    DIM forecast : STRING[40]
+    DIM temperature : STRING[40]
+    DIM humidity : STRING[40]
+    DIM path : INTEGER
+    TYPE registers = cc, a, b, dp : BYTE; x, y, u : INTEGER
+    DIM regs : registers
+
+    RUN gfx2("DWEnd")
+    RUN gfx2("DWSet", 1, 0, 0, 40, 25, 0, 2, 2)
+
+    ON ERROR GOTO 100
+
+    LOOP
+
+        OPEN #path, "/x1/forecast" : READ
+        READ #path, forecast
+        CLOSE #path
+
+        OPEN #path, "/x1/temperature" : READ
+        READ #path, temperature
+        CLOSE #path
+
+        OPEN #path, "/x1/humidity" : READ
+        READ #path, humidity
+        CLOSE #path
+
+        PRINT CHR$(12);
+        PRINT forecast
+        PRINT temperature;CHR$(174);"F"
+        PRINT humidity;"%"
+
+        ! 60 clock ticks = 1 second
+100     regs.x = 60 * 60
+        RUN syscall($A, regs)
+
+    ENDLOOP
+
+END

@@ -1,0 +1,26 @@
+#!/bin/csh
+
+cd /dev/shm
+touch .temperature 
+touch .humidity 
+touch .forecast 
+loop:
+rm -f .wxdata
+curl -s -k "https://api.openweathermap.org/data/2.5/weather?APPID=c182fa7830ca919362fefde7d5ff13f9&zip=55337,us&units=imperial" > .wxdata
+set result = `jq -r '.cod' < .wxdata`
+if ($result == 200) then
+	chmod og+rw .temperature
+	chmod og+rw .humidity
+	chmod og+rw .forecast
+	set result = `jq -r '.main.temp' < .wxdata`
+	/usr/bin/printf '%.0f\n' $result > .temperature
+	set result = `jq -r '.main.humidity' < .wxdata`
+	/usr/bin/printf '%.0f\n' $result > .humidity
+	set result = `jq -r '.weather | map (.main) | join (", ")' < .wxdata`
+	echo $result > .forecast
+	os9 copy -lr .temperature /media/share1/COCO/x1.dsk,temperature
+	os9 copy -lr .humidity /media/share1/COCO/x1.dsk,humidity
+	os9 copy -lr .forecast /media/share1/COCO/x1.dsk,forecast
+endif
+sleep 300
+goto loop
